@@ -23,7 +23,7 @@ function Obstacle(width, height, position) {
 
 const canvas = document.getElementById('mainCanvas');
 const ctx = canvas.getContext("2d");
-const STAGE_WIDTH = 100;
+const STAGE_WIDTH = 50;
 canvas.width = window.innerWidth * devicePixelRatio;
 canvas.height = window.innerHeight * devicePixelRatio;
 let frame = 0;
@@ -35,8 +35,8 @@ const CHARACTER_HEIGHT = 35;
 const CHARACTER_MARGIN = 40
 const GRAVITY = 0.75;
 
-const MIN_INTERVAL = 10;
-const MAX_INTERVAL = 40;
+const MIN_INTERVAL = 20;
+const MAX_INTERVAL = 55;
 const player = new Player();
 
 const obs = [];
@@ -48,6 +48,7 @@ obs.push(new Obstacle(15, 40, new Vector2(100, 0)));
 let tailX = 100;
 let checkFrame = 0;
 let collided = false;
+let speed = 0.5;
 
 const dino_img = new Image();
 dino_img.src = player.run_img_src;
@@ -120,7 +121,7 @@ function tick() {
 	// if (collided) checkFrame++;
 	checkFrame = (collided) ? checkFrame + 1 : 0;
 	// if(collided) console.log(checkFrame)
-	ctx.fillStyle = (checkFrame > 2) ? "red" : "black";
+	ctx.fillStyle = (checkFrame > 1) ? "red" : "black";
 	ctx.fill();
 
 
@@ -135,14 +136,16 @@ function tick() {
 	ctx.textAlign = "right";
 	ctx.fillText(`${player.score}`, canvas.width - 100, 30);
 
-	distance += 0.75;
+	distance += speed;
 	player.position.x = distance;
 	frame++;
 
 	if(frame % 5 == 0) {
 		player.score++;
-		// console.log(`${player.position.x}, ${player.position.y}`);
-		// console.log(JSON.stringify(obs));
+		if(player.score % 50 == 0 && player.score != 0) {
+			speed = Math.min(speed + 0.02, 1);
+		}
+		// console.log(speed)
 	}
 }
 
