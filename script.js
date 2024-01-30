@@ -33,18 +33,20 @@ const GROUND_MARGIN = 200;
 const CHARACTER_WIDTH = 40;
 const CHARACTER_HEIGHT = 35;
 const CHARACTER_MARGIN = 40
-const GRAVITY = 0.125;
+const GRAVITY = 0.75;
 
 const MIN_INTERVAL = 10;
 const MAX_INTERVAL = 40;
 const player = new Player();
 
 const obs = [];
+obs.push(new Obstacle(15, 40, new Vector2(10, 0)));
 obs.push(new Obstacle(15, 40, new Vector2(40, 0)));
 obs.push(new Obstacle(15, 40, new Vector2(60, 0)));
 obs.push(new Obstacle(15, 40, new Vector2(80, 0)));
 obs.push(new Obstacle(15, 40, new Vector2(100, 0)));
 let tailX = 100;
+let checkFrame = 0;
 let collided = false;
 
 const dino_img = new Image();
@@ -93,8 +95,11 @@ function tick() {
 	}
 
 	collided = false;
+	// checkFrame = 0;
 	// collision check
+
 	for (let i = 0; i < obs.length; i++) {
+
 		let px = player.position.x;
 		let py = player.position.y;
 		let pw = 10;
@@ -110,8 +115,12 @@ function tick() {
 			collided = true;
 		}
 	}
+	// console.log(collided)
 
-	ctx.fillStyle = (collided) ? "red" : "black";
+	// if (collided) checkFrame++;
+	checkFrame = (collided) ? checkFrame + 1 : 0;
+	// if(collided) console.log(checkFrame)
+	ctx.fillStyle = (checkFrame > 2) ? "red" : "black";
 	ctx.fill();
 
 
@@ -126,7 +135,7 @@ function tick() {
 	ctx.textAlign = "right";
 	ctx.fillText(`${player.score}`, canvas.width - 100, 30);
 
-	distance += 0.25;
+	distance += 0.75;
 	player.position.x = distance;
 	frame++;
 
@@ -145,7 +154,7 @@ function jump(e) {
 		if (player.onGround) {
 			player.onGround = false;
 			dino_img.src = player.jump_img_src;
-			player.velocity.y = -4;
+			player.velocity.y = -10;
 		}
 	}
 }
