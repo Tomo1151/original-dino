@@ -35,7 +35,7 @@ const GROUND_MARGIN = 200;
 const CHARACTER_WIDTH = 40;
 const CHARACTER_HEIGHT = 35;
 const CHARACTER_MARGIN = 40
-const GRAVITY = 0.2;
+const GRAVITY = 0.175;
 const PERSPECTIVE_MARGIN = 10;
 const MIN_INTERVAL = 20;
 const MAX_INTERVAL = 55;
@@ -43,11 +43,11 @@ const player = new Player();
 console.log(player.run_img_src);
 
 const obs = [];
-obs.push(new Obstacle(15, 40, new Vector2(10, 0)));
-obs.push(new Obstacle(15, 40, new Vector2(40, 0)));
-obs.push(new Obstacle(15, 40, new Vector2(60, 0)));
-obs.push(new Obstacle(15, 40, new Vector2(80, 0)));
-obs.push(new Obstacle(15, 40, new Vector2(100, 0)));
+obs.push(new Obstacle(15, 75, new Vector2(10, 0)));
+obs.push(new Obstacle(15, 75, new Vector2(40, 0)));
+obs.push(new Obstacle(15, 75, new Vector2(60, 0)));
+obs.push(new Obstacle(15, 75, new Vector2(80, 0)));
+obs.push(new Obstacle(15, 75, new Vector2(100, 0)));
 let tailX = 100;
 let checkFrame = 0;
 let collided = false;
@@ -100,12 +100,9 @@ function tick() {
 		}
 	}
 
-	collided = false;
-	// checkFrame = 0;
 	// collision check
-
+	collided = false;
 	for (let i = 0; i < obs.length; i++) {
-
 		let px = player.position.x;
 		let py = player.position.y;
 		let pw = 10;
@@ -114,26 +111,19 @@ function tick() {
 		let oby = obs[i].position.y;
 		let obw = obs[i].width;
 		let obh = obs[i].height;
-
-		// console.log(`p: (${px}, ${py}), ob: ${obx} obh: ${obh}`)
-
 		if (Math.abs(px+1 - obx) < 1.5 && (py + obh-1.5) > 0) {
 			collided = true;
 		}
 	}
-	// console.log(collided)
-
-	// if (collided) checkFrame++;
 	checkFrame = (collided) ? checkFrame + 1 : 0;
-	// if(collided) console.log(checkFrame)
 	ctx.fillStyle = (checkFrame > 1) ? "red" : "black";
 	ctx.fill();
 
 
 	// generate obstacles
 	if(obs.length < 50) {
-		// tailX += getRandomInt(MIN_INTERVAL, MAX_INTERVAL);
-		// obs.push(new Obstacle(15, 40, new Vector2(tailX, 0)))
+		tailX += getRandomInt(MIN_INTERVAL, MAX_INTERVAL);
+		obs.push(new Obstacle(15, 75, new Vector2(tailX, 0)))
 	}
 
 	// draw score
@@ -156,14 +146,14 @@ function tick() {
 }
 
 window.addEventListener("keydown", jump);
-window.addEventListener("click", jump);
+window.addEventListener("mousedown", jump);
 
 function jump(e) {
-	if(e.type == "click" || e.code == "Space") {
+	if(e.type == "mousedown" || e.code == "Space") {
 		if (player.onGround) {
 			player.onGround = false;
 			dino_img.src = player.jump_img_src;
-			player.velocity.y = -5;
+			player.velocity.y = -7;
 		}
 	}
 }
