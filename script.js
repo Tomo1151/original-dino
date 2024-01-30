@@ -11,8 +11,8 @@ const Player = function() {
 	this.velocity = new Vector2();
 	this.score = 0;
 	this.onGround = true;
-	this.run_img_src = 'img/dino.webp';
-	this.jump_img_src = 'img/dino.webp';
+	this.run_img_src = ['img/char_0.png', 'img/char_1.png', 'img/char_2.png'];
+	this.jump_img_src = 'img/char_j.png';
 }
 
 function Obstacle(width, height, position) {
@@ -21,11 +21,13 @@ function Obstacle(width, height, position) {
 	this.position = position;
 }
 
+
 const canvas = document.getElementById('mainCanvas');
 const ctx = canvas.getContext("2d");
-const STAGE_WIDTH = 50;
-canvas.width = window.innerWidth * devicePixelRatio;
-canvas.height = window.innerHeight * devicePixelRatio;
+const STAGE_WIDTH = 100;
+// canvas.width = window.innerWidth * devicePixelRatio;
+// canvas.height = window.innerHeight * devicePixelRatio;
+let posture = 0;
 let frame = 0;
 let distance = 0;
 
@@ -33,11 +35,12 @@ const GROUND_MARGIN = 200;
 const CHARACTER_WIDTH = 40;
 const CHARACTER_HEIGHT = 35;
 const CHARACTER_MARGIN = 40
-const GRAVITY = 0.75;
-
+const GRAVITY = 0.2;
+const PERSPECTIVE_MARGIN = 10;
 const MIN_INTERVAL = 20;
 const MAX_INTERVAL = 55;
 const player = new Player();
+console.log(player.run_img_src);
 
 const obs = [];
 obs.push(new Obstacle(15, 40, new Vector2(10, 0)));
@@ -48,18 +51,22 @@ obs.push(new Obstacle(15, 40, new Vector2(100, 0)));
 let tailX = 100;
 let checkFrame = 0;
 let collided = false;
-let speed = 0.5;
+let speed = 0.2;
 
 const dino_img = new Image();
-dino_img.src = player.run_img_src;
+dino_img.src = player.run_img_src[0];
 
 
 function tick() {
 	// canvas clear
 	ctx.clearRect(0, 0, canvas.width, canvas.height)
 
-	// draw character
-	ctx.drawImage(dino_img, CHARACTER_MARGIN, GROUND_MARGIN + player.position.y - CHARACTER_HEIGHT, CHARACTER_WIDTH, CHARACTER_HEIGHT);
+	// draw ground
+	ctx.beginPath();
+	ctx.moveTo(0, GROUND_MARGIN);
+	ctx.lineTo(canvas.width, GROUND_MARGIN);
+	ctx.stroke();
+	requestAnimationFrame(tick);
 
 
 	// edit parameter
@@ -71,26 +78,24 @@ function tick() {
 			player.position.y = 0;
 			player.velocity.y = 0;
 			player.onGround = true;
-			dino_img.src = player.run_img_src;
+			dino_img.src = player.run_img_src[posture];
 		}
-	}
+	} else {dino_img.src = player.run_img_src[posture];}
 
-	// draw ground
-	ctx.beginPath();
-	ctx.moveTo(0, GROUND_MARGIN);
-	ctx.lineTo(canvas.width, GROUND_MARGIN);
-	ctx.stroke();
-	requestAnimationFrame(tick);
+	// draw character
+
+	ctx.drawImage(dino_img, CHARACTER_MARGIN, GROUND_MARGIN + player.position.y - CHARACTER_HEIGHT + PERSPECTIVE_MARGIN + 5, CHARACTER_WIDTH, CHARACTER_HEIGHT);
+
 
 	// draw obstacle
 	for (let i = 0; i < obs.length; i++) {
-		let screen_x = (canvas.width / STAGE_WIDTH * (obs[i].position.x - distance))+CHARACTER_MARGIN;
-		let screen_y = GROUND_MARGIN;
-		ctx.rect(screen_x, screen_y, obs[i].width, -obs[i].height);
+		let screenX = (canvas.width / STAGE_WIDTH * (obs[i].position.x - distance))+CHARACTER_MARGIN;
+		let screenY = GROUND_MARGIN;
+		ctx.rect(screenX, screenY + PERSPECTIVE_MARGIN, obs[i].width, -obs[i].height);
 
 
-		// console.log(screen_x)
-		if (screen_x < 0) {
+		// console.log(screenX)
+		if (screenX < 0) {
 			obs.splice(i, 1);
 		}
 	}
@@ -127,8 +132,8 @@ function tick() {
 
 	// generate obstacles
 	if(obs.length < 50) {
-		tailX += getRandomInt(MIN_INTERVAL, MAX_INTERVAL);
-		obs.push(new Obstacle(15, 40, new Vector2(tailX, 0)))
+		// tailX += getRandomInt(MIN_INTERVAL, MAX_INTERVAL);
+		// obs.push(new Obstacle(15, 40, new Vector2(tailX, 0)))
 	}
 
 	// draw score
@@ -145,8 +150,9 @@ function tick() {
 		if(player.score % 50 == 0 && player.score != 0) {
 			speed = Math.min(speed + 0.02, 1);
 		}
-		// console.log(speed)
 	}
+
+	if(frame % 10 == 0) posture = (posture + 1) % 3;
 }
 
 window.addEventListener("keydown", jump);
@@ -157,7 +163,7 @@ function jump(e) {
 		if (player.onGround) {
 			player.onGround = false;
 			dino_img.src = player.jump_img_src;
-			player.velocity.y = -10;
+			player.velocity.y = -5;
 		}
 	}
 }
