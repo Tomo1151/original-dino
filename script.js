@@ -24,12 +24,15 @@ function Obstacle(width, height, position) {
 
 const canvas = document.getElementById('mainCanvas');
 const ctx = canvas.getContext("2d");
-const STAGE_WIDTH = 100;
+const STAGE_WIDTH = 50;
 // canvas.width = window.innerWidth * devicePixelRatio;
 // canvas.height = window.innerHeight * devicePixelRatio;
 let posture = 0;
 let frame = 0;
 let distance = 0;
+const GAME_PLAYING = 1;
+const GAME_OVER = -1;
+let gameState = GAME_PLAYING;
 
 const GROUND_MARGIN = 200;
 const CHARACTER_WIDTH = 40;
@@ -45,19 +48,22 @@ console.log(player.run_img_src);
 const obs = [];
 obs.push(new Obstacle(15, 75, new Vector2(10, 0)));
 obs.push(new Obstacle(15, 75, new Vector2(40, 0)));
-obs.push(new Obstacle(15, 75, new Vector2(60, 0)));
+obs.push(new Obstacle(55, 75, new Vector2(60, 0)));
 obs.push(new Obstacle(15, 75, new Vector2(80, 0)));
 obs.push(new Obstacle(15, 75, new Vector2(100, 0)));
 let tailX = 100;
 let checkFrame = 0;
 let collided = false;
 let speed = 0.2;
+let hitcount = 0;
 
 const dino_img = new Image();
 dino_img.src = player.run_img_src[0];
 
 
 function tick() {
+	if(gameState == GAME_OVER) return;
+
 	// canvas clear
 	ctx.clearRect(0, 0, canvas.width, canvas.height)
 
@@ -80,7 +86,13 @@ function tick() {
 			player.onGround = true;
 			dino_img.src = player.run_img_src[posture];
 		}
-	} else {dino_img.src = player.run_img_src[posture];}
+	} else {
+		dino_img.src = player.run_img_src[posture];
+	}
+
+	if (gameState == GAME_OVER) {
+		dino_img.src = player.jump_img_src;
+	}
 
 	// draw character
 
@@ -116,9 +128,18 @@ function tick() {
 		}
 	}
 	checkFrame = (collided) ? checkFrame + 1 : 0;
-	ctx.fillStyle = (checkFrame > 1) ? "red" : "black";
-	ctx.fill();
+	if (checkFrame > 1) {
+		ctx.fillStyle = "red";
+		hitcount++;
+		gameState = GAME_OVER;
+	} else {
+		"black";
+	}
 
+	ctx.fill();
+	if (hitcount > 2) {
+		speed = 0;
+	}
 
 	// generate obstacles
 	if(obs.length < 50) {
@@ -135,7 +156,7 @@ function tick() {
 	player.position.x = distance;
 	frame++;
 
-	if(frame % 5 == 0) {
+	if(frame % 5 == 0 && gameState != GAME_OVER) {
 		player.score++;
 		if(player.score % 50 == 0 && player.score != 0) {
 			speed = Math.min(speed + 0.02, 1);
