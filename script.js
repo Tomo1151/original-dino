@@ -45,16 +45,22 @@ const GRAVITY = 0.175;
 const PERSPECTIVE_MARGIN = 10;
 const MIN_INTERVAL = 20;
 const MAX_INTERVAL = 55;
+sessionStorage.removeItem("maxScore");
+const MAX_SCORE = sessionStorage.getItem("maxScore") ?? 0;
 const player = new Player();
-console.log(player.run_img_src);
 
 const obs = [];
-obs.push(new Obstacle(135, 75, new Vector2(20, 0)));
+const clouds = [];
+clouds.push(new Vector2(40, 10));
+clouds.push(new Vector2(95, 30));
+clouds.push(new Vector2(150, 20));
+obs.push(new Obstacle(35, 75, new Vector2(20, 0)));
 obs.push(new Obstacle(15, 75, new Vector2(40, 0)));
 obs.push(new Obstacle(55, 75, new Vector2(60, 0)));
 obs.push(new Obstacle(15, 75, new Vector2(80, 0)));
 obs.push(new Obstacle(15, 75, new Vector2(100, 0)));
 let tailX = 100;
+let ctail = 150;
 let checkFrame = 0;
 let collided = false;
 let speed = 0.2;
@@ -62,19 +68,34 @@ let hitcount = 0;
 
 const dino_img = new Image();
 dino_img.src = player.run_img_src[0];
-
+const gameover_img = new Image();
+gameover_img.src = 'img/gameover.png';
 
 function tick() {
-	if(frame == gameOverFrame+2) return;
+	if(frame == gameOverFrame+2) {
+		ctx.drawImage(gameover_img, 256, -10, 512, 256);
+		setMaxScore(player.score);
+		return;
+	}
 
 	// canvas clear
 	ctx.clearRect(0, 0, canvas.width, canvas.height);
 
+	// draw sky
+	ctx.fillStyle = '#a0d8ef';
+	ctx.fillRect(0, 0, canvas.width, GROUND_MARGIN);
+
 	// draw ground
+	ctx.fillStyle = "#79c06e";
+	ctx.fillRect(0, GROUND_MARGIN, canvas.width, canvas.height);
+
 	ctx.beginPath();
 	ctx.moveTo(0, GROUND_MARGIN);
 	ctx.lineTo(canvas.width, GROUND_MARGIN);
 	ctx.stroke();
+
+	// if(!collided) ctx.fillStyle = 'black';
+
 	requestAnimationFrame(tick);
 
 
@@ -88,6 +109,19 @@ function tick() {
 		// console.log(screenX)
 		if (screenX < -(obs[i].width + 10)) {
 			obs.splice(i, 1);
+		}
+	}
+
+	// draw clouds
+	for (let i = 0; i < clouds.length; i++) {
+		let screenX = (STAGE_RATIO * (clouds[i].x - distance) * 0.35);
+		let screenY = clouds[i].y;
+		const cloud_img = new Image();
+		cloud_img.src = 'img/cloud.png';
+		ctx.drawImage(cloud_img, screenX, screenY, 50, 50);
+
+		if (screenX < -50) {
+			clouds.splice(i, 1);
 		}
 	}
 
@@ -121,7 +155,7 @@ function tick() {
 		hitcount++;
 		gameState = GAME_OVER;
 	} else {
-		"black";
+		ctx.fillStyle = "black";
 	}
 
 	ctx.fill();
@@ -162,10 +196,18 @@ function tick() {
 		obs.push(new Obstacle(15, 75, new Vector2(tailX, 0)))
 	}
 
+	if(clouds.length < 50) {
+		ctail += getRandomInt(30, 100);
+		let y = getRandomInt(0, 50);
+		clouds.push(new Vector2(ctail, 30+y))
+	}
+
 	// draw score
 	ctx.font = "20px monospace";
 	ctx.textAlign = "right";
-	ctx.fillText(`${player.score}`, canvas.width - 100, 30);
+	ctx.fillText(`SCORE: ${player.score}`, canvas.width - 100, 30);
+	ctx.textAlign = "left";
+	ctx.fillText(`HI SCORE: ${MAX_SCORE}`, 30, 30);
 
 	distance += speed;
 	player.position.x = distance;
@@ -182,7 +224,9 @@ function tick() {
 }
 
 window.addEventListener("keydown", jump);
+window.addEventListener("keydown", retry);
 window.addEventListener("mousedown", jump);
+window.addEventListener("mousedown", retry);
 
 function jump(e) {
 	if(e.type == "mousedown" || e.code == "Space") {
@@ -194,11 +238,20 @@ function jump(e) {
 	}
 }
 
+function setMaxScore(score) {
+	sessionStorage.setItem("maxScore", (sessionStorage.length==0)?score:Math.max(sessionStorage.getItem("maxScore"), score));
+	console.log(sessionStorage);
+}
+
 function getRandomInt(min, max) {
 	min = Math.ceil(min);
 	max = Math.floor(max);
 	return Math.floor(Math.random() * (max - min) + min); //The maximum is exclusive and the minimum is inclusive
 }
 
+function retry(e) {
+	if(gameState != GAME_OVER) return;
+	if(e.type == "mousedown" || e.code == "Space") location.reload();
+}
 
 tick();
