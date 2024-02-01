@@ -22,10 +22,10 @@ function Obstacle(width, height, position) {
 	this.position = position;
 }
 
-
+const slider = document.getElementById('fov');
 const canvas = document.getElementById('mainCanvas');
 const ctx = canvas.getContext("2d");
-const STAGE_WIDTH = 50;
+let STAGE_WIDTH = sessionStorage.getItem("fov") ?? 50;
 // canvas.width = window.innerWidth * devicePixelRatio;
 // canvas.height = window.innerHeight * devicePixelRatio;
 let posture = 0;
@@ -36,7 +36,7 @@ const GAME_OVER = -1;
 let gameState = GAME_PLAYING;
 let gameOverFrame = undefined;
 
-const STAGE_RATIO = canvas.width / STAGE_WIDTH;
+let STAGE_RATIO = canvas.width / STAGE_WIDTH;
 const GROUND_MARGIN = 200;
 const CHARACTER_WIDTH = 40;
 const CHARACTER_HEIGHT = 35;
@@ -223,10 +223,19 @@ function tick() {
 	if(frame % 10 == 0) posture = (posture + 1) % 3;
 }
 
+slider.addEventListener("input", () => {
+	STAGE_WIDTH = slider.value;
+	STAGE_RATIO = canvas.width / STAGE_WIDTH;
+	sessionStorage.setItem("fov", slider.value);
+});
+window.addEventListener("load", () => {
+	let fov = sessionStorage.getItem("fov") ?? 50;
+	slider.value = fov;
+});
 window.addEventListener("keydown", jump);
-window.addEventListener("keydown", retry);
+canvas.addEventListener("keydown", retry);
 window.addEventListener("mousedown", jump);
-window.addEventListener("mousedown", retry);
+canvas.addEventListener("mousedown", retry);
 
 function jump(e) {
 	if(e.type == "mousedown" || e.code == "Space") {
@@ -240,13 +249,12 @@ function jump(e) {
 
 function setMaxScore(score) {
 	sessionStorage.setItem("maxScore", (sessionStorage.length==0)?score:Math.max(sessionStorage.getItem("maxScore"), score));
-	console.log(sessionStorage);
 }
 
 function getRandomInt(min, max) {
 	min = Math.ceil(min);
 	max = Math.floor(max);
-	return Math.floor(Math.random() * (max - min) + min); //The maximum is exclusive and the minimum is inclusive
+	return Math.floor(Math.random() * (max - min) + min);
 }
 
 function retry(e) {
