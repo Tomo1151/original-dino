@@ -266,4 +266,9 @@ function retry(e) {
 	if(e.type == "mousedown" || e.code == "Space") location.reload();
 }
 
+let prev = frame;
+setInterval(() => {
+	console.log(`fps: ${(frame-prev)}`)
+	prev = frame;
+}, 1000);
 tick();
