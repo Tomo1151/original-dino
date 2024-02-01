@@ -22,6 +22,8 @@ function Obstacle(width, height, position) {
 	this.position = position;
 }
 
+
+const FPS = 72;
 const slider = document.getElementById('fov');
 const canvas = document.getElementById('mainCanvas');
 const ctx = canvas.getContext("2d");
@@ -96,7 +98,9 @@ function tick() {
 
 	// if(!collided) ctx.fillStyle = 'black';
 
-	requestAnimationFrame(tick);
+	setTimeout(() => {
+		requestAnimationFrame(tick);
+	}, 1000 / FPS);
 
 
 	// draw obstacle
