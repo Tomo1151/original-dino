@@ -13,6 +13,7 @@ const Player = function() {
 	this.onGround = true;
 	this.run_img_src = ['img/char_0.png', 'img/char_1.png', 'img/char_2.png'];
 	this.jump_img_src = 'img/char_j.png';
+	this.dead_img_src = 'img/char_d.png';
 }
 
 function Obstacle(width, height, position) {
@@ -33,7 +34,9 @@ let distance = 0;
 const GAME_PLAYING = 1;
 const GAME_OVER = -1;
 let gameState = GAME_PLAYING;
+let gameOverFrame = undefined;
 
+const STAGE_RATIO = canvas.width / STAGE_WIDTH;
 const GROUND_MARGIN = 200;
 const CHARACTER_WIDTH = 40;
 const CHARACTER_HEIGHT = 35;
@@ -46,7 +49,7 @@ const player = new Player();
 console.log(player.run_img_src);
 
 const obs = [];
-obs.push(new Obstacle(15, 75, new Vector2(10, 0)));
+obs.push(new Obstacle(135, 75, new Vector2(20, 0)));
 obs.push(new Obstacle(15, 75, new Vector2(40, 0)));
 obs.push(new Obstacle(55, 75, new Vector2(60, 0)));
 obs.push(new Obstacle(15, 75, new Vector2(80, 0)));
@@ -62,10 +65,10 @@ dino_img.src = player.run_img_src[0];
 
 
 function tick() {
-	if(gameState == GAME_OVER) return;
+	if(frame == gameOverFrame+2) return;
 
 	// canvas clear
-	ctx.clearRect(0, 0, canvas.width, canvas.height)
+	ctx.clearRect(0, 0, canvas.width, canvas.height);
 
 	// draw ground
 	ctx.beginPath();
@@ -75,45 +78,22 @@ function tick() {
 	requestAnimationFrame(tick);
 
 
-	// edit parameter
-	if (!player.onGround) {
-		player.velocity.y += GRAVITY;
-		player.position.y += player.velocity.y;
-
-		if (player.position.y > 0) {
-			player.position.y = 0;
-			player.velocity.y = 0;
-			player.onGround = true;
-			dino_img.src = player.run_img_src[posture];
-		}
-	} else {
-		dino_img.src = player.run_img_src[posture];
-	}
-
-	if (gameState == GAME_OVER) {
-		dino_img.src = player.jump_img_src;
-	}
-
-	// draw character
-
-	ctx.drawImage(dino_img, CHARACTER_MARGIN, GROUND_MARGIN + player.position.y - CHARACTER_HEIGHT + PERSPECTIVE_MARGIN + 5, CHARACTER_WIDTH, CHARACTER_HEIGHT);
-
-
 	// draw obstacle
 	for (let i = 0; i < obs.length; i++) {
-		let screenX = (canvas.width / STAGE_WIDTH * (obs[i].position.x - distance))+CHARACTER_MARGIN;
+		let screenX = (STAGE_RATIO * (obs[i].position.x - distance))+CHARACTER_MARGIN;
 		let screenY = GROUND_MARGIN;
 		ctx.rect(screenX, screenY + PERSPECTIVE_MARGIN, obs[i].width, -obs[i].height);
 
 
 		// console.log(screenX)
-		if (screenX < 0) {
+		if (screenX < -(obs[i].width + 10)) {
 			obs.splice(i, 1);
 		}
 	}
 
 	// collision check
 	collided = false;
+
 	for (let i = 0; i < obs.length; i++) {
 		let px = player.position.x;
 		let py = player.position.y;
@@ -123,7 +103,15 @@ function tick() {
 		let oby = obs[i].position.y;
 		let obw = obs[i].width;
 		let obh = obs[i].height;
-		if (Math.abs(px+1 - obx) < 1.5 && (py + obh-1.5) > 0) {
+		let left = Math.abs(px - obx);
+		let right = CHARACTER_WIDTH / STAGE_RATIO;
+		if (px > obx) {
+			left = px - (obx + (obw / STAGE_RATIO))
+			right = 0;
+		}
+
+		if (left < right && (py + obh) > 0) {
+			player.dead_img_src = (right == 0) ? 'img/char_dh.png' : 'img/char_d.png';
 			collided = true;
 		}
 	}
@@ -137,6 +125,33 @@ function tick() {
 	}
 
 	ctx.fill();
+
+
+	// edit parameter
+	if (gameState == GAME_OVER) {
+		gameOverFrame = gameOverFrame ?? frame;
+		dino_img.src = player.dead_img_src;
+		ctx.drawImage(dino_img, CHARACTER_MARGIN, GROUND_MARGIN + player.position.y - CHARACTER_HEIGHT + PERSPECTIVE_MARGIN + 5, CHARACTER_WIDTH, CHARACTER_HEIGHT);
+	} else {
+		if (!player.onGround) {
+			player.velocity.y += GRAVITY;
+			player.position.y += player.velocity.y;
+
+			if (player.position.y > 0) {
+				player.position.y = 0;
+				player.velocity.y = 0;
+				player.onGround = true;
+				dino_img.src = player.run_img_src[posture];
+			}
+		} else {
+			dino_img.src = player.run_img_src[posture];
+		}
+
+		// draw character
+		ctx.drawImage(dino_img, CHARACTER_MARGIN, GROUND_MARGIN + player.position.y - CHARACTER_HEIGHT + PERSPECTIVE_MARGIN + 5, CHARACTER_WIDTH, CHARACTER_HEIGHT);
+	}
+
+
 	if (hitcount > 2) {
 		speed = 0;
 	}
