@@ -203,11 +203,16 @@ function tick() {
 	}
 
 	// draw score
-	ctx.font = "20px monospace";
+	ctx.strokeStyle = "#333";
+	ctx.fillStyle = "white";
+	ctx.font = "bold 20px monospace";
 	ctx.textAlign = "right";
+	ctx.lineWidth = 1;
 	ctx.fillText(`SCORE: ${player.score}`, canvas.width - 100, 30);
+	ctx.strokeText(`SCORE: ${player.score}`, canvas.width - 100, 30);
 	ctx.textAlign = "left";
-	ctx.fillText(`HI SCORE: ${MAX_SCORE}`, 30, 30);
+	ctx.fillText(`HI SCORE: ${MAX_SCORE}`, 50, 30);
+	ctx.strokeText(`HI SCORE: ${MAX_SCORE}`, 50, 30);
 
 	distance += speed;
 	player.position.x = distance;
@@ -233,7 +238,6 @@ window.addEventListener("load", () => {
 	slider.value = fov;
 });
 window.addEventListener("keydown", jump);
-canvas.addEventListener("keydown", retry);
 window.addEventListener("mousedown", jump);
 canvas.addEventListener("mousedown", retry);
 
