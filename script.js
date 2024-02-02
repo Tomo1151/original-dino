@@ -65,8 +65,8 @@ let prev = 0;
 let collided = false;
 
 const dino_img = new Image();
-dino_img.src = player.run_img_src[0];
 const gameover_img = new Image();
+dino_img.src = player.run_img_src[0];
 gameover_img.src = 'img/gameover.png';
 
 function tick(t) {
@@ -100,9 +100,8 @@ function tick(t) {
 		let screenX = (STAGE_RATIO * (obs[i].position.x - distance)) + CHARACTER_MARGIN;
 		let screenY = GROUND_MARGIN;
 		ctx.rect(screenX, screenY + PERSPECTIVE_MARGIN, obs[i].width, -obs[i].height);
-		if (screenX < -(obs[i].width + 10)) {
-			obs.splice(i, 1);
-		}
+
+		if (screenX < -(obs[i].width + 10)) obs.splice(i, 1);
 	}
 
 	// draw clouds
@@ -112,9 +111,8 @@ function tick(t) {
 		const cloud_img = new Image();
 		cloud_img.src = 'img/cloud.png';
 		ctx.drawImage(cloud_img, screenX, screenY, 50, 50);
-		if (screenX < -50) {
-			clouds.splice(i, 1);
-		}
+
+		if (screenX < -50) clouds.splice(i, 1);
 	}
 
 	// collision check
@@ -137,16 +135,13 @@ function tick(t) {
 			}
 			collided = true;
 			speed = 0;
+			gameState = GAME_OVER;
+
 			break;
 		}
 	}
 
-	if (collided) {
-		ctx.fillStyle = "red";
-		gameState = GAME_OVER;
-	} else {
-		ctx.fillStyle = "black";
-	}
+	ctx.fillStyle = (collided) ? "red" : "black";
 	ctx.fill();
 
 	// edit player params
@@ -186,9 +181,9 @@ function tick(t) {
 	}
 
 	// draw score
+	ctx.font = "bold 22px monospace";
 	ctx.strokeStyle = "black";
 	ctx.fillStyle = "white";
-	ctx.font = "bold 22px monospace";
 	ctx.textAlign = "right";
 	ctx.lineWidth = 1.5;
 	ctx.fillText(`SCORE: ${player.score}`, canvas.width - 100, 30);
@@ -241,11 +236,11 @@ canvas.addEventListener("click", retry);
 
 function jump(e) {
 	if (e.type == "mousedown" || e.code == "Space") {
-		if (player.onGround) {
-			player.onGround = false;
-			dino_img.src = player.jump_img_src;
-			player.velocity.y = -INIT_VELOCITY;
-		}
+		if (!player.onGround) return;
+
+		player.onGround = false;
+		dino_img.src = player.jump_img_src;
+		player.velocity.y = -INIT_VELOCITY;
 	}
 }
 
