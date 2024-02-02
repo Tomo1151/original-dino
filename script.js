@@ -258,4 +258,5 @@ function retry(e) {
 	if (gameState != GAME_OVER) return;
 	if (e.type == "click" || e.code == "Space") location.reload();
 }
+
 tick();
