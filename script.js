@@ -229,11 +229,7 @@ function tick(t) {
 	// calc FPS
 	if (frame % 5 == 0) {
 		let dt = t - prev;
-		// endTime = new Date().getTime();
-		// countFPS = frame - prev;
-		// prev = frame;
 		fpsCounter.innerText = `[fps]: ${(1000/(dt/5)).toPrecision(5)}`;
-		// startTime = new Date().getTime();
 		prev = t;
 	}
 }
