@@ -56,33 +56,18 @@ const CHARACTER_MARGIN = 40
 const PERSPECTIVE_MARGIN = 10;
 
 const player = new Player();
-const obs = [
-	new Obstacle(35, 75, new Vector2(20, 0)),
-	new Obstacle(15, 75, new Vector2(40, 0)),
-	new Obstacle(55, 75, new Vector2(60, 0)),
-	new Obstacle(15, 75, new Vector2(80, 0)),
-	new Obstacle(15, 75, new Vector2(100, 0))
-];
+const obs = [];
+const clouds = [];
 
-const clouds = [
-	new Vector2(40, 10),
-	new Vector2(95, 30),
-	new Vector2(150, 20)
-];
-
-let tailX = 100;
-let ctail = 150;
+let tailX = 0;
+let ctail = 0;
+let prev = 0;
 let collided = false;
 
 const dino_img = new Image();
 dino_img.src = player.run_img_src[0];
 const gameover_img = new Image();
 gameover_img.src = 'img/gameover.png';
-
-let startTime = new Date().getTime();
-let endTime;
-let countFPS = 0;
-let prev = 0;
 
 function tick(t) {
 	if (frame == gameOverFrame + 2) {
@@ -248,6 +233,7 @@ window.addEventListener("load", () => {
 	let fov = sessionStorage.getItem("fov") ?? 50;
 	slider.value = fov;
 });
+
 window.addEventListener("keydown", jump);
 canvas.addEventListener("mousedown", jump);
 canvas.addEventListener("click", retry);
