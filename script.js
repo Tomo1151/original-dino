@@ -149,7 +149,7 @@ function tick(t) {
 	}
 	ctx.fill();
 
-	// edit parameter
+	// edit player params
 	if (gameState == GAME_OVER) {
 		gameOverFrame = gameOverFrame ?? frame;
 		dino_img.src = player.dead_img_src;
@@ -178,6 +178,7 @@ function tick(t) {
 		obs.push(new Obstacle(getRandomInt(15, 55), getRandomInt(45, 75), new Vector2(tailX, 0)))
 	}
 
+	// generate clouds
 	if (clouds.length < 50) {
 		ctail += getRandomInt(30, 100);
 		let y = getRandomInt(0, 50);
