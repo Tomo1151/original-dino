@@ -26,22 +26,25 @@ const FPS = 60;
 const GAME_PLAYING = 1;
 const GAME_OVER = -1;
 
-const MIN_INTERVAL = 20;
-const MAX_INTERVAL = 55;
-const GRAVITY = 0.5;
-
 const slider = document.getElementById('fov');
+const resetBtn = document.getElementById('reset_btn');
+const fpsCounter = document.getElementById('fps');
 const canvas = document.getElementById('mainCanvas');
 const ctx = canvas.getContext("2d");
 
 let STAGE_WIDTH = sessionStorage.getItem("fov") ?? 50;
 let STAGE_RATIO = canvas.width / STAGE_WIDTH;
-const MAX_SCORE = sessionStorage.getItem("maxScore") ?? 0;
+let MAX_SCORE = sessionStorage.getItem("maxScore") ?? 0;
 
 let posture = 0;
 let frame = 0;
 let distance = 0;
 let speed = 0.4;
+
+const GRAVITY = 0.5;
+const INIT_VELOCITY = 12;
+const MIN_INTERVAL = 20;
+const MAX_INTERVAL = 55;
 
 let gameState = GAME_PLAYING;
 let gameOverFrame = undefined;
@@ -81,7 +84,7 @@ let endTime;
 let countFPS = 0;
 let prev = 0;
 
-function tick() {
+function tick(t) {
 	if (frame == gameOverFrame + 2) {
 		ctx.drawImage(gameover_img, 256, -10, 512, 256);
 		setMaxScore(player.score);
@@ -187,7 +190,7 @@ function tick() {
 	// generate obstacles
 	if (obs.length < 50) {
 		tailX += getRandomInt(MIN_INTERVAL, MAX_INTERVAL);
-		obs.push(new Obstacle(15, 75, new Vector2(tailX, 0)))
+		obs.push(new Obstacle(getRandomInt(15, 55), getRandomInt(45, 75), new Vector2(tailX, 0)))
 	}
 
 	if (clouds.length < 50) {
@@ -197,11 +200,11 @@ function tick() {
 	}
 
 	// draw score
-	ctx.strokeStyle = "#333";
+	ctx.strokeStyle = "black";
 	ctx.fillStyle = "white";
-	ctx.font = "bold 20px monospace";
+	ctx.font = "bold 22px monospace";
 	ctx.textAlign = "right";
-	ctx.lineWidth = 1;
+	ctx.lineWidth = 1.5;
 	ctx.fillText(`SCORE: ${player.score}`, canvas.width - 100, 30);
 	ctx.strokeText(`SCORE: ${player.score}`, canvas.width - 100, 30);
 	ctx.textAlign = "left";
@@ -224,12 +227,14 @@ function tick() {
 	if (frame % 10 == 0) posture = (posture + 1) % 3;
 
 	// calc FPS
-	endTime = new Date().getTime();
-	if (endTime - startTime >= 1000) {
-		countFPS = frame - prev;
-		prev = frame;
-		startTime = new Date().getTime();
-		console.log(`FPS: ${countFPS}`);
+	if (frame % 5 == 0) {
+		let dt = t - prev;
+		// endTime = new Date().getTime();
+		// countFPS = frame - prev;
+		// prev = frame;
+		fpsCounter.innerText = `[fps]: ${(1000/(dt/5)).toPrecision(5)}`;
+		// startTime = new Date().getTime();
+		prev = t;
 	}
 }
 
@@ -238,6 +243,10 @@ slider.addEventListener("input", () => {
 	STAGE_WIDTH = slider.value;
 	STAGE_RATIO = canvas.width / STAGE_WIDTH;
 	sessionStorage.setItem("fov", slider.value);
+});
+resetBtn.addEventListener("click", () => {
+	MAX_SCORE = 0;
+	sessionStorage.removeItem("maxScore");
 });
 window.addEventListener("load", () => {
 	let fov = sessionStorage.getItem("fov") ?? 50;
@@ -252,7 +261,7 @@ function jump(e) {
 		if (player.onGround) {
 			player.onGround = false;
 			dino_img.src = player.jump_img_src;
-			player.velocity.y = -12;
+			player.velocity.y = -INIT_VELOCITY;
 		}
 	}
 }

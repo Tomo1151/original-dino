@@ -8,47 +8,89 @@
 		<script defer type="text/javascript" src="script.js"></script>
 
 		<style type="text/css">
-			* {
-				margin: 0;
-				box-sizing: border-box;
-				overflow: hidden;
-				color: #444;
-				font-weight: bold;
-			}
+		* {
+			margin: 0;
+			box-sizing: border-box;
+			overflow: hidden;
+			color: #444;
+			font-weight: bold;
+		}
 
-			html {height: 100%}
+		html {
+			height: 100%
+		}
 
-			body {
-				display: flex;
-				flex-direction: column;
-				justify-content: center;
-				align-items: center;
-				height: 100%;
-			}
+		body {
+			display: flex;
+			flex-direction: column;
+			justify-content: center;
+			align-items: center;
+			height: 100%;
+			font-family: monospace;
+		}
 
-			#mainCanvas {
-				width: 1000px;
-				height: 250px;
-				background-color: #ddd;
-			}
+		#mainCanvas {
+			width: 1000px;
+			height: 250px;
+			background-color: #ddd;
+		}
 
-			label {
-				margin-top: 1rem;
-				font-family: monospace;
-				user-select: none;
-			}
+		.ui {
+			display: flex;
+			text-align: center;
+			width: 1000px;
+			margin-top: 1rem;
+		}
 
-			input {
-				margin-top: 0rem;
-				accent-color: grey;
-			}
+		.flex-item {
+			display: flex;
+			flex-direction: column;
+			justify-content: center;
+			align-items: center;
+			flex-basis: 33%;
+		}
+
+		#reset_btn {
+			border: 1px #333 solid;
+			border-radius: 3px;
+			user-select: none;
+			transition-duration: .25s;
+			cursor: pointer;
+		}
+
+		#reset_btn:hover {
+			filter: opacity(.5);
+		}
+
+		#reset_btn:active {
+			filter: opacity(1);
+		}
+
+		label {
+			display: block;
+			user-select: none;
+		}
+
+		input {
+			margin-top: 0rem;
+			width: 80%;
+			accent-color: grey;
+		}
 		</style>
 	</head>
 
 	<body>
 		<canvas id="mainCanvas" width="1000" height="250"></canvas>
-		<label for="fov">Field of view</label>
-		<input type="range" min="25" max="100" id="fov">
+		<div class="ui">
+			<div class="flex-item" id="reset_btn">
+				<p>Clear HI SCORE</p>
+			</div>
+			<div class="flex-item">
+				<label for="fov">Field of view</label>
+				<input type="range" min="25" max="100" id="fov">
+			</div>
+			<div class="flex-item" id="fps">[fps]: 00.000</div>
+		</div>
 	</body>
 
 </html>
