@@ -53,20 +53,24 @@ const CHARACTER_MARGIN = 40
 const PERSPECTIVE_MARGIN = 10;
 
 const player = new Player();
-const obs = [];
-const clouds = [];
-clouds.push(new Vector2(40, 10));
-clouds.push(new Vector2(95, 30));
-clouds.push(new Vector2(150, 20));
-obs.push(new Obstacle(35, 75, new Vector2(20, 0)));
-obs.push(new Obstacle(15, 75, new Vector2(40, 0)));
-obs.push(new Obstacle(55, 75, new Vector2(60, 0)));
-obs.push(new Obstacle(15, 75, new Vector2(80, 0)));
-obs.push(new Obstacle(15, 75, new Vector2(100, 0)));
+const obs = [
+	new Obstacle(35, 75, new Vector2(20, 0)),
+	new Obstacle(15, 75, new Vector2(40, 0)),
+	new Obstacle(55, 75, new Vector2(60, 0)),
+	new Obstacle(15, 75, new Vector2(80, 0)),
+	new Obstacle(15, 75, new Vector2(100, 0))
+];
+
+const clouds = [
+	new Vector2(40, 10),
+	new Vector2(95, 30),
+	new Vector2(150, 20)
+];
 
 let tailX = 100;
 let ctail = 150;
 let collided = false;
+
 const dino_img = new Image();
 dino_img.src = player.run_img_src[0];
 const gameover_img = new Image();
