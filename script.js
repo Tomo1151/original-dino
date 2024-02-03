@@ -32,16 +32,25 @@ const Player = function() {
 	this.dead_img_src = 'img/char_d.png';
 }
 
-function Obstacle(width, height, position) {
+const Obstacle = function(width, height, position) {
 	this.width = width;
 	this.height = height;
 	this.position = position;
+	this.img = new Image();
+	this.img.src = (this.width > 40) ? 'img/block.png' : 'img/block_n.png';
 }
 
-function Grass(str, position) {
+const Grass = function(str, position) {
 	this.str = str;
 	this.position = position;
 }
+
+const sounds = {
+	down: new Audio('sound/down.mp3'),
+	jump: new Audio('sound/jump.mp3'),
+	speed: new Audio('sound/speedup.mp3'),
+	score: new Audio('sound/scoreup.mp3')
+};
 
 const FPS = 60;
 const FC = new FrameCounter(FPS);
@@ -66,8 +75,8 @@ let speed = 0.4;
 
 const GRAVITY = 0.5;
 const INIT_VELOCITY = 12;
-const MIN_INTERVAL = 20;
-const MAX_INTERVAL = 55;
+let MIN_INTERVAL = 20;
+const MAX_INTERVAL = 75;
 
 let gameState = GAME_TITLE;
 let gameOverFrame = undefined;
@@ -101,6 +110,9 @@ gameover_img.src = 'img/gameover.png';
 function tick(t = new Date().getTime()) {
 	if (frame == gameOverFrame + 2) {
 		ctx.drawImage(gameover_img, 256, -10, 512, 256);
+		sounds.down.pause();
+		sounds.down.currentTime = 0;
+		sounds.down.play();
 		setMaxScore(player.score);
 		return;
 	}
@@ -111,13 +123,13 @@ function tick(t = new Date().getTime()) {
 	draw();
 
 	// generate obstacles
-	if (obs.length < 50) {
+	if (obs.length < 6) {
 		tailX += getRandomInt(MIN_INTERVAL, MAX_INTERVAL);
-		obs.push(new Obstacle(getRandomInt(15, 55), getRandomInt(45, 75), new Vector2(tailX, 0)))
+		obs.push(new Obstacle(getRandomInt(15, 55), getRandomInt(45, 100), new Vector2(tailX, 0)))
 	}
 
 	// generate clouds
-	if (clouds.length < 50) {
+	if (clouds.length < 10) {
 		ctail += getRandomInt(30, 100);
 		let y = getRandomInt(0, 50);
 		clouds.push(new Vector2(ctail, 30 + y))
@@ -188,21 +200,24 @@ function calculate(t) {
 	player.position.x = distance;
 	prevFrame = frame;
 
-	// calc player score && game speed
+	// calc player score && character posture && fps
 	if (frame % 5 == 0 && gameState != GAME_OVER) {
-		player.score++;
-		if (player.score % 50 == 0 && player.score != 0) {
-			speed = Math.min(speed + 0.02, 1);
-		}
+		let dt = t - prev;
+		prev = t;
+		fpsCounter.innerText = `[fps]: ${(1000/(dt/5)).toPrecision(5)}`;
+		posture = (posture + 1) % 3;
 	}
 
-	if (frame % 10 == 0) posture = (posture + 1) % 3;
+	if (frame % 6 == 0 && gameState == GAME_PLAYING) {
+		player.score++;
+	}
 
-	// calc FPS
-	if (frame % 5 == 0) {
-		let dt = t - prev;
-		fpsCounter.innerText = `[fps]: ${(1000/(dt/5)).toPrecision(5)}`;
-		prev = t;
+	// change game speed
+	if (player.score % 100 == 0 && player.score != 0) {
+		sounds.speed.play();
+		speed = Math.min(speed + 0.01, 1.05);
+		MIN_INTERVAL = Math.min(MIN_INTERVAL + .5, 50);
+		// console.log(`GAME SPEED: ${speed}, MIN INTERVAL: ${MIN_INTERVAL}`);
 	}
 }
 
@@ -223,14 +238,10 @@ function draw() {
 	for (let i = 0; i < obs.length; i++) {
 		let screenX = (STAGE_RATIO * (obs[i].position.x - distance)) + CHARACTER_MARGIN;
 		let screenY = GROUND_MARGIN;
-		ctx.rect(screenX, screenY + PERSPECTIVE_MARGIN, obs[i].width, -obs[i].height);
+		ctx.drawImage(obs[i].img, screenX, screenY + PERSPECTIVE_MARGIN, obs[i].width, -obs[i].height);
 
 		if (screenX < -(obs[i].width + 10)) obs.splice(i, 1);
 	}
-
-	ctx.fillStyle = (collided) ? "red" : "black";
-	ctx.fill();
-
 
 	// draw clouds
 	for (let i = 0; i < clouds.length; i++) {
@@ -276,10 +287,12 @@ slider.addEventListener("input", () => {
 	STAGE_RATIO = canvas.width / STAGE_WIDTH;
 	sessionStorage.setItem("fov", slider.value);
 });
+
 resetBtn.addEventListener("click", () => {
 	MAX_SCORE = 0;
 	sessionStorage.removeItem("maxScore");
 });
+
 window.addEventListener("load", () => {
 	let fov = sessionStorage.getItem("fov") ?? 50;
 	slider.value = fov;
@@ -287,6 +300,7 @@ window.addEventListener("load", () => {
 
 window.addEventListener("keydown", jump);
 window.addEventListener("keydown", gameStart);
+// window.addEventListener("keyup", retry);
 canvas.addEventListener("mousedown", jump);
 canvas.addEventListener("click", gameStart);
 canvas.addEventListener("click", retry);
@@ -295,7 +309,9 @@ function jump(e) {
 	if (gameState != GAME_PLAYING) return;
 	if (e.type == "mousedown" || e.code == "Space") {
 		if (!player.onGround) return;
-
+		sounds.jump.pause();
+		sounds.jump.currentTime = 0;
+		sounds.jump.play();
 		player.onGround = false;
 		dino_img.src = player.jump_img_src;
 		player.velocity.y = -INIT_VELOCITY;
@@ -325,7 +341,7 @@ function retry(e) {
 	if (e.type == "click" || e.code == "Space") location.reload();
 }
 
-dino_img.addEventListener("load", () => {
+title_img.addEventListener("load", () => {
 	draw();
 	if (gameState == GAME_TITLE) ctx.drawImage(title_img, 256, -10, 512, 256);
 });
