@@ -38,6 +38,11 @@ function Obstacle(width, height, position) {
 	this.position = position;
 }
 
+function Grass(str, position) {
+	this.str = str;
+	this.position = position;
+}
+
 const FPS = 60;
 const FC = new FrameCounter(FPS);
 const GAME_TITLE = 0;
@@ -76,9 +81,11 @@ const PERSPECTIVE_MARGIN = 10;
 const player = new Player();
 const obs = [];
 const clouds = [];
+const grasses = [];
 
 let tailX = 25;
 let ctail = 0;
+let gtail = 0;
 let prev = 0;
 let prevFrame = -1;
 let collided = false;
@@ -114,6 +121,13 @@ function tick(t = new Date().getTime()) {
 		ctail += getRandomInt(30, 100);
 		let y = getRandomInt(0, 50);
 		clouds.push(new Vector2(ctail, 30 + y))
+	}
+
+	// generate grasses
+	if (grasses.length < 50) {
+		gtail += getRandomInt(5, 20);
+		let y = getRandomInt(5, 45);
+		grasses.push(new Grass("w".repeat(getRandomInt(1, 5)), new Vector2(gtail, GROUND_MARGIN + y)));
 	}
 
 	calculate(t);
@@ -214,6 +228,10 @@ function draw() {
 		if (screenX < -(obs[i].width + 10)) obs.splice(i, 1);
 	}
 
+	ctx.fillStyle = (collided) ? "red" : "black";
+	ctx.fill();
+
+
 	// draw clouds
 	for (let i = 0; i < clouds.length; i++) {
 		let screenX = (STAGE_RATIO * (clouds[i].x - distance) * 0.35);
@@ -225,9 +243,16 @@ function draw() {
 		if (screenX < -50) clouds.splice(i, 1);
 	}
 
-	// draw objects
-	ctx.fillStyle = (collided) ? "red" : "black";
-	ctx.fill();
+	ctx.font = "normal 22px monospace";
+	ctx.fillStyle = "black"
+	for (let i = 0; i < grasses.length; i++) {
+		let screenX = (STAGE_RATIO * (grasses[i].position.x - distance));
+		let screenY = grasses[i].position.y;
+		let len = getRandomInt(1, 5);
+		ctx.fillText(grasses[i].str, screenX, screenY);
+
+		if (screenX < -100) grasses.splice(i, 1);
+	}
 
 	// draw character
 	ctx.drawImage(dino_img, CHARACTER_MARGIN, GROUND_MARGIN + player.position.y - CHARACTER_HEIGHT + PERSPECTIVE_MARGIN + 5, CHARACTER_WIDTH, CHARACTER_HEIGHT);
