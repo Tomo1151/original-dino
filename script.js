@@ -1,6 +1,22 @@
 'use strict';
 console.log("Hello, world!");
 
+const _NOW_ = window.performance && (performance.now || performance.mozNow || performance.oNow || performance.webkitNow);
+
+const FrameCounter = function (fps = 60.0) {
+	this._fps = fps;
+	this._start = this._getTime();
+}
+
+FrameCounter.prototype._getTime = function() {
+	return (_NOW_ && _NOW_.call(performance)) || (new Date().getTime());
+}
+
+FrameCounter.prototype.onAscFrame = function() {
+	const time = this._getTime();
+	return Math.floor((time - this._start) / (1000.0 / this._fps));
+}
+
 const Vector2 = function(x = 0, y = 0) {
 	this.x = x;
 	this.y = y;
@@ -23,6 +39,7 @@ function Obstacle(width, height, position) {
 }
 
 const FPS = 60;
+const FC = new FrameCounter(FPS);
 const GAME_PLAYING = 1;
 const GAME_OVER = -1;
 
@@ -62,6 +79,7 @@ const clouds = [];
 let tailX = 0;
 let ctail = 0;
 let prev = 0;
+let prevFrame = -1;
 let collided = false;
 
 const dino_img = new Image();
@@ -69,7 +87,8 @@ const gameover_img = new Image();
 dino_img.src = player.run_img_src[0];
 gameover_img.src = 'img/gameover.png';
 
-function tick(t) {
+
+function tick(t = new Date().getTime()) {
 	if (frame == gameOverFrame + 2) {
 		ctx.drawImage(gameover_img, 256, -10, 512, 256);
 		setMaxScore(player.score);
@@ -91,10 +110,6 @@ function tick(t) {
 	ctx.lineTo(canvas.width, GROUND_MARGIN);
 	ctx.stroke();
 
-	// setTimeout(() => {
-	requestAnimationFrame(tick);
-	// }, 1000 / FPS);
-
 	// draw obstacle
 	for (let i = 0; i < obs.length; i++) {
 		let screenX = (STAGE_RATIO * (obs[i].position.x - distance)) + CHARACTER_MARGIN;
@@ -114,6 +129,46 @@ function tick(t) {
 
 		if (screenX < -50) clouds.splice(i, 1);
 	}
+
+	// generate obstacles
+	if (obs.length < 50) {
+		tailX += getRandomInt(MIN_INTERVAL, MAX_INTERVAL);
+		obs.push(new Obstacle(getRandomInt(15, 55), getRandomInt(45, 75), new Vector2(tailX, 0)))
+	}
+
+	// generate clouds
+	if (clouds.length < 50) {
+		ctail += getRandomInt(30, 100);
+		let y = getRandomInt(0, 50);
+		clouds.push(new Vector2(ctail, 30 + y))
+	}
+
+	// draw objects
+	ctx.fillStyle = (collided) ? "red" : "black";
+	ctx.fill();
+
+	// draw character
+	ctx.drawImage(dino_img, CHARACTER_MARGIN, GROUND_MARGIN + player.position.y - CHARACTER_HEIGHT + PERSPECTIVE_MARGIN + 5, CHARACTER_WIDTH, CHARACTER_HEIGHT);
+
+	// draw score
+	ctx.font = "bold 22px monospace";
+	ctx.strokeStyle = "black";
+	ctx.fillStyle = "white";
+	ctx.textAlign = "right";
+	ctx.lineWidth = 1.5;
+	ctx.fillText(`SCORE: ${player.score}`, canvas.width - 100, 30);
+	ctx.strokeText(`SCORE: ${player.score}`, canvas.width - 100, 30);
+	ctx.textAlign = "left";
+	ctx.fillText(`HI SCORE: ${MAX_SCORE}`, 50, 30);
+	ctx.strokeText(`HI SCORE: ${MAX_SCORE}`, 50, 30);
+
+	calculate(t);
+	requestAnimationFrame(tick);
+}
+
+function calculate(t) {
+	frame = FC.onAscFrame();
+	if(frame == prevFrame) return;
 
 	// collision check
 	collided = false;
@@ -141,14 +196,10 @@ function tick(t) {
 		}
 	}
 
-	ctx.fillStyle = (collided) ? "red" : "black";
-	ctx.fill();
-
 	// edit player params
 	if (gameState == GAME_OVER) {
 		gameOverFrame = gameOverFrame ?? frame;
 		dino_img.src = player.dead_img_src;
-		ctx.drawImage(dino_img, CHARACTER_MARGIN, GROUND_MARGIN + player.position.y - CHARACTER_HEIGHT + PERSPECTIVE_MARGIN + 5, CHARACTER_WIDTH, CHARACTER_HEIGHT);
 	} else {
 		if (!player.onGround) {
 			player.velocity.y += GRAVITY;
@@ -162,40 +213,12 @@ function tick(t) {
 		} else {
 			dino_img.src = player.run_img_src[posture];
 		}
-
-		// draw character
-		ctx.drawImage(dino_img, CHARACTER_MARGIN, GROUND_MARGIN + player.position.y - CHARACTER_HEIGHT + PERSPECTIVE_MARGIN + 5, CHARACTER_WIDTH, CHARACTER_HEIGHT);
 	}
-
-	// generate obstacles
-	if (obs.length < 50) {
-		tailX += getRandomInt(MIN_INTERVAL, MAX_INTERVAL);
-		obs.push(new Obstacle(getRandomInt(15, 55), getRandomInt(45, 75), new Vector2(tailX, 0)))
-	}
-
-	// generate clouds
-	if (clouds.length < 50) {
-		ctail += getRandomInt(30, 100);
-		let y = getRandomInt(0, 50);
-		clouds.push(new Vector2(ctail, 30 + y))
-	}
-
-	// draw score
-	ctx.font = "bold 22px monospace";
-	ctx.strokeStyle = "black";
-	ctx.fillStyle = "white";
-	ctx.textAlign = "right";
-	ctx.lineWidth = 1.5;
-	ctx.fillText(`SCORE: ${player.score}`, canvas.width - 100, 30);
-	ctx.strokeText(`SCORE: ${player.score}`, canvas.width - 100, 30);
-	ctx.textAlign = "left";
-	ctx.fillText(`HI SCORE: ${MAX_SCORE}`, 50, 30);
-	ctx.strokeText(`HI SCORE: ${MAX_SCORE}`, 50, 30);
 
 	// edit game params
 	distance += speed;
 	player.position.x = distance;
-	frame++;
+	prevFrame = frame;
 
 	// calc player score && game speed
 	if (frame % 5 == 0 && gameState != GAME_OVER) {
