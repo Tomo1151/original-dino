@@ -1,4 +1,4 @@
-'use strict';
+"use strict";
 console.log("Hello, world!");
 
 const _NOW_ = window.performance && (performance.now || performance.mozNow || performance.oNow || performance.webkitNow);
