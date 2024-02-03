@@ -36,8 +36,10 @@ const Obstacle = function(width, height, position) {
 	this.width = width;
 	this.height = height;
 	this.position = position;
-	this.img = new Image();
-	this.img.src = (this.width > 40) ? 'img/block.png' : 'img/block_n.png';
+	if (this.width > 50) {
+		this.img = new Image();
+		this.img.src = 'img/block.png';
+	}
 }
 
 const Grass = function(str, position) {
@@ -234,15 +236,6 @@ function draw() {
 	ctx.lineTo(canvas.width, GROUND_MARGIN);
 	ctx.stroke();
 
-	// draw obstacle
-	for (let i = 0; i < obs.length; i++) {
-		let screenX = (STAGE_RATIO * (obs[i].position.x - distance)) + CHARACTER_MARGIN;
-		let screenY = GROUND_MARGIN;
-		ctx.drawImage(obs[i].img, screenX, screenY + PERSPECTIVE_MARGIN, obs[i].width, -obs[i].height);
-
-		if (screenX < -(obs[i].width + 10)) obs.splice(i, 1);
-	}
-
 	// draw clouds
 	for (let i = 0; i < clouds.length; i++) {
 		let screenX = (STAGE_RATIO * (clouds[i].x - distance) * 0.35);
@@ -254,6 +247,27 @@ function draw() {
 		if (screenX < -50) clouds.splice(i, 1);
 	}
 
+	// draw obstacle
+	ctx.fillStyle = "white";
+	ctx.strokeStyle = "black";
+	ctx.lineWidth = 3;
+	ctx.shadowColor = "#e83929";
+	ctx.shadowBlur = 20;
+	for (let i = 0; i < obs.length; i++) {
+		let screenX = (STAGE_RATIO * (obs[i].position.x - distance)) + CHARACTER_MARGIN;
+		let screenY = GROUND_MARGIN;
+		if (obs[i].img) {
+			ctx.drawImage(obs[i].img, screenX, screenY + PERSPECTIVE_MARGIN, obs[i].width, -obs[i].height);
+		} else {
+			ctx.fillRect(screenX, screenY + PERSPECTIVE_MARGIN, obs[i].width, -obs[i].height);
+			ctx.strokeRect(screenX, screenY + PERSPECTIVE_MARGIN, obs[i].width, -obs[i].height);
+		}
+
+		if (screenX < -(obs[i].width + 10)) obs.splice(i, 1);
+	}
+	ctx.shadowBlur = 0;
+
+	// draw grasses
 	ctx.font = "normal 22px monospace";
 	ctx.fillStyle = "black"
 	for (let i = 0; i < grasses.length; i++) {
@@ -302,6 +316,7 @@ window.addEventListener("keydown", jump);
 window.addEventListener("keydown", gameStart);
 // window.addEventListener("keyup", retry);
 canvas.addEventListener("mousedown", jump);
+window.addEventListener("touchstart", jump);
 canvas.addEventListener("click", gameStart);
 canvas.addEventListener("click", retry);
 
